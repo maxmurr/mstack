@@ -45,23 +45,32 @@ missing or pre-failing checks in the brief.
 
 ## 2. Start Sol
 
-In T3, call `orchestrator_capabilities`. Pick the latest Sol unless the user
-named a version. Do not hardcode an ID. Record provider, model, and effort
-only if exposed. Use `delegate_task` every round (`role: "review"`,
-`mode: "async"`). Save `taskId`. New `clientRequestId` per round.
-`childThreadId` is storage, not the next target. Do not use
-`t3_thread_send`, `create_threads`, or `t3_thread_launch` for review.
+Pick the latest Sol unless the user named a version. Do not hardcode an ID.
+Record model and effort.
 
-If T3 tools are not listed, try one direct capability call. Outside T3, use
-a native Sol subagent and keep its ID. In Claude Code, use a custom subagent
-only if it is set up to run Sol. If no route runs Sol, report the blocker. Do
-not substitute a model.
+In Rex (`REX_SESSION` is set), run every round through the Codex CLI in a
+new background tab. Write the brief to a file first:
+
+```sh
+rex run -s "$REX_SESSION" --label sol-r<N> --keep-open --focus=false -c "$repo" --json -- \
+  codex exec -m <sol-model> -s read-only -o "$out" "$(cat "$brief")"
+```
+
+Save `.block_ids[0]`. Wait with `rex wait -s "$REX_SESSION" <block> --json` as
+one background command (in Claude Code, `run_in_background`), so its exit
+wakes you. Then read `$out`. On a nonzero exit or empty `$out`, read
+`rex capture -s "$REX_SESSION" -b <block> --trim --unwrap | tail -n 100`.
+
+Outside Rex, use a native Sol subagent and keep its ID. In Claude Code, use a
+custom subagent only if it is set up to run Sol. If no route runs Sol, report
+the blocker. Do not substitute a model.
 
 Do not edit scoped files while review runs. Wait for the notice. Do not
 poll or start a second reviewer. Timeout, error, or no reply is not
-approval. On failure, cancel, verify stop, restart with the ledger.
+approval. On failure, stop the run (`rex send-key -s "$REX_SESSION" -b <block>
+ctrl+c`), verify it stopped, restart with the ledger.
 
-Round 1 brief (T3 children get no history):
+Round 1 brief (each Codex run starts with no history):
 
 ```
 Review only. Do not edit, commit, push, comment on PRs, or start subagents.
@@ -95,7 +104,7 @@ review grew the diff, cut first. Do not agree just to end the loop.
 
 Start one only if budget remains and a blocker or should is open, behavior code
 changed, or approval does not cover the current behavior diff. Use a fresh
-`delegate_task` in T3, or follow up the saved native ID. Send the round 1 brief,
+Codex run in a new Rex tab, or follow up the saved native ID. Send the round 1 brief,
 the ledger (`fixed:` / `disagree:` / `declined:` + evidence), the same base
 diff, and the change since last round. Tell Sol: open ids and changed code only.
 Mark each old id `resolved` or `still open: <reason>`.

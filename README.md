@@ -1,9 +1,10 @@
-# tstack
+# mstack
 
 The agent skills I use every day, cleaned up so anyone can use them. They work
-in Claude Code and Codex. Some use [T3 Code](https://github.com/pingdotgg/t3code)
-features when they are available and fall back to native tools when they are
-not.
+in Claude Code and Codex. Forked from [tstack](https://github.com/t3dotgg/tstack).
+`council` and `sol-loop` run their reviewers in background
+[Rex](https://www.superlogical.com/rex/docs) tabs when they are available, and
+fall back to native subagents when they are not.
 
 ## Skills
 
@@ -29,18 +30,19 @@ Some skills call others. Install the ones they need too:
 ## Install
 
 ```bash
-git clone https://github.com/t3dotgg/tstack
-cp -R tstack/skills/* ~/.claude/skills/   # Claude Code
-cp -R tstack/skills/* ~/.codex/skills/    # Codex
+git clone https://github.com/maxmurr/mstack
+cp -R mstack/skills/* ~/.claude/skills/   # Claude Code
+cp -R mstack/skills/* ~/.codex/skills/    # Codex
 ```
 
 ## Requirements
 
 - An authenticated [GitHub CLI](https://cli.github.com) (`gh`).
 - `python3` for `babysit-pr`'s `pr-wait` script.
-- `council` and `sol-loop` need subagents on other providers' models. T3 Code
-  does this with `delegate_task`. Otherwise you need a harness that can run
-  those models.
+- `council` and `sol-loop` need reviewers on other providers' models. In
+  [Rex](https://www.superlogical.com/rex/docs), they run the `codex`, `claude`,
+  and `opencode` CLIs in background tabs. Otherwise you need a harness that
+  can run those models.
 
 ## Make them yours
 

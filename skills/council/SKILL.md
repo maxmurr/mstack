@@ -16,10 +16,32 @@ high reasoning effort. If the user's instructions name council members, use
 those. Otherwise pick the latest flagship model from each provider, for
 example Claude Opus, GPT Sol, and Gemini Pro.
 
-In T3 Code, use `orchestrator_capabilities` to resolve the models, then
-`delegate_task` to start one delegate per model in parallel. Elsewhere, use
-the harness's subagent tools. If you cannot reach three providers, or a named
-member is unavailable, report it instead of substituting.
+In Rex (`REX_SESSION` is set), run each delegate as a CLI in its own
+background tab, all at once. Write the brief to a file first, and give each
+delegate a read-only mode:
+
+| Provider | Command after `--` |
+| --- | --- |
+| Anthropic | `claude -p --model <model> --effort high --permission-mode plan "$(cat "$brief")"` |
+| OpenAI | `codex exec -m <model> -c model_reasoning_effort=high -s read-only -o "$out" "$(cat "$brief")"` |
+| Others (Gemini, ...) | `opencode run --agent plan -m <provider/model> "$(cat "$brief")"` |
+
+```sh
+rex run -s "$REX_SESSION" --label council-<name>-r<N> --keep-open --focus=false \
+  -c "$repo" --json -- <command>
+```
+
+Resolve model IDs from the CLIs (`opencode models`, the user's config). Do not
+hardcode them. Save each `.block_ids[0]`. Wait on each delegate with
+`rex wait -s "$REX_SESSION" <block> --json` as its own background command (in
+Claude Code, `run_in_background`), so each exit wakes you. Read the reply with
+`rex capture -s "$REX_SESSION" -b <block> --trim --unwrap`, or from `$out` for
+Codex. A nonzero exit or empty reply is a failed review, not a pass. Leave
+the tabs open for the user.
+
+Outside Rex, use the harness's subagent tools. If you cannot reach three
+providers, or a named member is unavailable, report it instead of
+substituting.
 
 Give each delegate the request and relevant context. For review or feedback,
 keep their work read-only. Collect their responses and summarize the useful
