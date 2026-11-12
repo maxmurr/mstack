@@ -53,8 +53,11 @@ new background tab. Write the brief to a file first:
 
 ```sh
 rex run -s "$REX_SESSION" --label sol-r<N> --keep-open --focus=false -c "$repo" --json -- \
-  codex exec -m <sol-model> -s read-only -o "$out" "$(cat "$brief")"
+  "$(command -v codex)" exec -m <sol-model> -s read-only -o "$out" "$(cat "$brief")"
 ```
+
+Use the absolute `codex` path as shown. Rex tabs load the login shell's PATH,
+not the interactive one, so a bare `codex` can start an older install.
 
 Save `.block_ids[0]`. Wait with `rex wait -s "$REX_SESSION" <block> --json` as
 one background command (in Claude Code, `run_in_background`), so its exit

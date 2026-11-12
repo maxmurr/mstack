@@ -14,30 +14,39 @@ Bring in three delegates to help with the user's request, usually for review
 or feedback. Use one strong model from each of three different providers, at
 high reasoning effort. If the user's instructions name council members, use
 those. Otherwise pick the latest flagship model from each provider, for
-example Claude Opus, GPT Sol, and Gemini Pro.
+example Claude Opus, GPT Sol, and Gemini Argon.
 
-In Rex (`REX_SESSION` is set), run each delegate as a CLI in its own
-background tab, all at once. Write the brief to a file first, and give each
-delegate a read-only mode:
+Start all three at once. Write the brief to a file first. Each delegate must
+be read-only:
 
-| Provider | Command after `--` |
+| Provider | How |
 | --- | --- |
-| Anthropic | `claude -p --model <model> --effort high --permission-mode plan "$(cat "$brief")"` |
-| OpenAI | `codex exec -m <model> -c model_reasoning_effort=high -s read-only -o "$out" "$(cat "$brief")"` |
-| Others (Gemini, ...) | `opencode run --agent plan -m <provider/model> "$(cat "$brief")"` |
+| Anthropic | In Claude Code, a native subagent with the Opus model. Elsewhere, `"$(command -v claude)" -p --model <model> --effort high --permission-mode plan "$(cat "$brief")"` |
+| OpenAI | `"$(command -v codex)" exec -m <model> -c model_reasoning_effort=high -s read-only -o "$out" "$(cat "$brief")"` |
+| Google | `"$(command -v agy)" --model <slug> --print-timeout 30m --settings '{"permissions":{"deny":["command(*)","write_file(*)"]}}' -p "$(cat "$brief")"` |
+
+Run each CLI delegate in its own background Rex tab (`REX_SESSION` is set):
 
 ```sh
 rex run -s "$REX_SESSION" --label council-<name>-r<N> --keep-open --focus=false \
   -c "$repo" --json -- <command>
 ```
 
-Resolve model IDs from the CLIs (`opencode models`, the user's config). Do not
-hardcode them. Save each `.block_ids[0]`. Wait on each delegate with
+Save each `.block_ids[0]`. Wait on each delegate with
 `rex wait -s "$REX_SESSION" <block> --json` as its own background command (in
 Claude Code, `run_in_background`), so each exit wakes you. Read the reply with
 `rex capture -s "$REX_SESSION" -b <block> --trim --unwrap`, or from `$out` for
-Codex. A nonzero exit or empty reply is a failed review, not a pass. Leave
-the tabs open for the user.
+Codex. A nonzero exit, an empty reply, or a `no output produced` message is a
+failed review, not a pass. Leave the tabs open for the user.
+
+- **Model IDs:** resolve them, do not hardcode. `agy models` lists slugs with
+  the effort built in; pick the latest flagship Gemini at `-high`.
+- **Absolute CLI paths:** Rex tabs load the login shell's PATH, not the
+  interactive one, so a bare name can start an older install.
+- **agy runs no shell commands** under those settings (headless `agy` would
+  otherwise write files). Put the full diff in its brief, for example by
+  appending `git diff <base>` output. It reads the rest of the code with its
+  own file tools.
 
 Outside Rex, use the harness's subagent tools. If you cannot reach three
 providers, or a named member is unavailable, report it instead of
@@ -69,7 +78,7 @@ Rounds: 2
 | --- | --- | --- |
 | Claude Opus | 7/10 | 9/10 |
 | GPT Sol | 8/10 | 10/10 |
-| Gemini Pro | 7/10 | 9/10 |
+| Gemini Argon | 7/10 | 9/10 |
 ```
 
 If a delegate gives no score, write `no score`. Do not invent one.

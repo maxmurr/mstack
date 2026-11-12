@@ -40,8 +40,10 @@ cp -R mstack/skills/* ~/.codex/skills/    # Codex
 - An authenticated [GitHub CLI](https://cli.github.com) (`gh`).
 - `python3` for `babysit-pr`'s `pr-wait` script.
 - `council` and `sol-loop` need reviewers on other providers' models. In
-  [Rex](https://www.superlogical.com/rex/docs), they run the `codex`, `claude`,
-  and `opencode` CLIs in background tabs. Otherwise you need a harness that
+  [Rex](https://www.superlogical.com/rex/docs), they run the `codex` and
+  [`agy`](https://antigravity.google/docs/getting-started?tab=cli) CLIs in
+  background tabs, signed in once interactively. `agy` works with a Google AI
+  Pro plan, so it needs no Gemini API key. Otherwise you need a harness that
   can run those models.
 
 ## Make them yours
